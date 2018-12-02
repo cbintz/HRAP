@@ -42,6 +42,7 @@ const svg = d3.select("body")
 //TODO: add interaction to select metric
 let metric="Developmental_Screening_Rate";
 
+
 // fetch our data -- first the map, and then the CSV data (the order matters little here since we
 // are not displaying anything until the binding is done)
 Promise.all([
@@ -52,6 +53,19 @@ d3.csv("HRAP_Data.csv")
     console.log(data[1])
     const map_data = data[0];
     const hrap_data = data[1];
+
+
+    var menu = d3.select("#metrics");
+		for (prop in hrap_data[0]){
+			if (prop != "HSA_NAME"){
+				menu.append("option").attr("value",prop).text(prop);
+			}
+		}
+    // set the behavior on a change to the menu (i.e., update the coloring)
+    		d3.select("select").on("change", function () {
+    			setMetric(this.value);
+    			});
+
 
     projection.fitExtent([[20, 20], [940, 480]], map_data);
 
@@ -76,22 +90,29 @@ d3.csv("HRAP_Data.csv")
         .enter()
         .append("path")
         .attr("d", path)
-        .attr("class","hsa");
+        .attr("class","hsa")
+
+        function setMetric(metric){
+    			color.domain(d3.extent(hrap_data, (d) => +d[metric]));
+                    serviceAreas.style("fill", function(d){
+                        if (d.properties.value){
+                            return color(+d.properties.value[metric]);
+                        }	else{
+                            return "red";
+                        }
+
+                    });
 
 
-    // style each state to set the fill color based on our metric
-    serviceAreas.style("fill", function(d){
-        if (d.properties.value){
-            return color(+d.properties.value[metric]);
-        }	else{
-            return "red";
-        }
+    		}
+    setMetric("Developmental_Screening_Rate")
 
-    });
+
 });
 
 
 </script>
+<select><optgroup label="Metrics" id="metrics"></optgroup></select>
 
     </body>
 </html>

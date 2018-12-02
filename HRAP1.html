@@ -1,75 +1,97 @@
 <!DOCTYPE html>
-<html>
-
+<html lang = "en">
 <head>
     <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-    <title>HRAP</title>
+    <title>HRAP
+    </title>
+    <script src="https://d3js.org/d3.v5.min.js" charset="utf-8"></script>
+    <script src="http://d3js.org/colorbrewer.v1.min.js"></script>
 
-    <script type="text/javascript" src="http://d3js.org/d3.v5.min.js"></script>
-    <script type="text/javascript" src="http://d3js.org/topojson.v1.min.js"></script>
-    <script type = "text/javascript" src="https://d3js.org/d3-geo.v1.min.js"></script>
+    <style type="text/css">
+
+
+    </style>
+
 </head>
 
 <body>
-    <p id="report"></p>
-    <div id="map"></div>
-</body>
+
+
 <script type="text/javascript">
- var h = 450,
-     w = 960;
-// // set-up unit projection and path
+// create an SVG region
+const width = 800, height = 500;
+
+const svg = d3.select("body")
+        .append("svg")
+        .attr("width", width)
+        .attr("height", height);
+
+// set-up unit projection and path
  var projection = d3.geoMercator()
-     .scale(1)
-     .translate([0, 0]);
+     .translate([width, height])
+
+
+// create a path tool that will translate GeoJSON into SVG path data
  var path = d3.geoPath()
      .projection(projection);
- // set-up svg canvas
- var svg = d3.select("#map").append("svg")
-     .attr("height", h)
-     .attr("width", w);
-//https://github.com/johan/world.geo.json
-const json = "hsa.geojson";
-d3.json(json).then((data) =>{
-    console.log(data)
 
-         var county = data.features;
-         d3.csv("hsa.csv", function(data) {
-            data.each(function(d, i) {
-                county.each(function(e, j) {
-                    if (d.objectid === e.objectid) {
-                        e.hsa_name = d.name
-                    }
-                })
-            })
-        })
-    //     // calculate bounds, scale and transform
-    //     // see http://stackoverflow.com/questions/14492284/center-a-map-in-d3-given-a-geojson-object
-         var b = path.bounds(data),
-             s = .95 / Math.max((b[1][0] - b[0][0]) / w, (b[1][1] - b[0][1]) / h),
-             t = [(w - s * (b[1][0] + b[0][0])) / 2, (h - s * (b[1][1] + b[0][1])) / 2];
-         projection.scale(s)
-             .translate(t);
-         svg.selectAll("path")
-             .data(county).enter()
-             .append("path")
-             .style("fill", "none")
-             .style("stroke", "grey")
-             .style("stroke-width", "1px")
-             .attr("d", path)
-             .on("mouseover", function(d, i) {
-                 reporter(d);
-             });
+ // create our coloring tool
+ const color = d3.scaleQuantize()
+ .range(colorbrewer.YlGnBu[8].reverse());
 
-     function reporter(x) {
-         console.log(x)
-         d3.select("#report").text(function() {
-             return x.name;
-         });
-     }
-}).catch((err)=>{
-    console.log(err);
+//TODO: add interaction to select metric
+let metric="Developmental_Screening_Rate";
+
+// fetch our data -- first the map, and then the CSV data (the order matters little here since we
+// are not displaying anything until the binding is done)
+Promise.all([
+d3.json("hsa.geojson"),
+d3.csv("HRAP_Data.csv")
+]).then(function(data){
+    console.log(data[0])
+    console.log(data[1])
+    const map_data = data[0];
+    const hrap_data = data[1];
+
+    projection.fitExtent([[20, 20], [940, 480]], map_data);
+
+    // set the domain for our color scale now that we have data
+    color.domain(d3.extent(hrap_data, (d) => +d[metric]));
+
+    // create a map of our census data, so we can easily find records
+    // corresponding to a particular state
+    const hsa_map = d3.map();
+    hrap_data.forEach((d)=> {hsa_map.set(d["HSA_NAME"],d)});
+
+    // loop through all of the path data, attaching the appropriate
+    // record to each one based on the name
+    for (let i = 0; i < map_data.features.length; i++){
+        let name = map_data.features[i].properties["HSA_NAME"];
+        map_data.features[i].properties.value = hsa_map.get(name);
+    }
+
+    // create the states in the SVG
+    const serviceAreas = svg.selectAll("path")
+        .data(map_data.features)
+        .enter()
+        .append("path")
+        .attr("d", path)
+        .attr("class","hsa");
+
+
+    // style each state to set the fill color based on our metric
+    serviceAreas.style("fill", function(d){
+        if (d.properties.value){
+            return color(+d.properties.value[metric]);
+        }	else{
+            return "red";
+        }
+
+    });
 });
+
+
 </script>
 
+    </body>
 </html>

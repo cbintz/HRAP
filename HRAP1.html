@@ -15,21 +15,31 @@
 </head>
 
 <body>
+    <div style="width:1770px">
+  <svg width="350" height="400" id="svg1" ></svg>
+  <svg width="350" height="400" id="svg2" >></svg>
+    </div>
 
-<svg id="key1"></svg>
+    <svg id="key1"></svg>
 <script type="text/javascript">
 // create an SVG region
-const width = 800, height = 500;
-const svg = d3.select("body")
+const width = 350, height = 400;
+const svgNeed = d3.select("#svg1")
 				.append("svg")
 				.attr("width", width)
-				.attr("height", height);
+				.attr("height", height)
+
+const svgResource = d3.select("#svg2")
+				.append("svg")
+				.attr("width", width)
+				.attr("height", height)
+
 
 
 const color = d3.scaleSequential(d3.interpolateBuGn)
 
 // Add a legend for the color values.
-  var legend = svg.selectAll("#key1")
+  var legend = svgNeed.selectAll("#key1")
       .data(color.ticks(6).slice(1).reverse())
     .enter().append("g")
       .attr("class", "legend")
@@ -46,7 +56,7 @@ const color = d3.scaleSequential(d3.interpolateBuGn)
       .attr("dy", ".35em")
       .text(String);
 
-  svg.append("text")
+  svgNeed.append("text")
       .attr("class", "label")
       .attr("x", width + 20)
       .attr("y", 10)
@@ -77,54 +87,80 @@ let metric="Developmental_Screening_Rate";
 // are not displaying anything until the binding is done)
 Promise.all([
 d3.json("hsa.geojson"),
-d3.csv("HRAP_Data.csv")
+d3.csv("HRAP_Data_Need.csv"),
+d3.csv("HRAP_Data_Resource.csv")
 ]).then(function(data){
     console.log(data[0])
     console.log(data[1])
+    console.log(data[2])
     const map_data = data[0];
-    const hrap_data = data[1];
+    const hrap_data_need = data[1];
+    const hrap_data_resource = data[2]
 
+    const resourceDict = {"Developmental Screening": "Availability of Early Head Start*", "Abstain From Smoking During Pregnancy": "# of 802 Quits Partners",
+                        "Breast Cancer Screening" : "# Ladies First Enrollees*", "Cervical Cancer Screening": "# Ladies First Enrollees*",
+                    "Chlamydia Screening": "# Clinics that test for chlamydia", "Neonatal Abstinence Syndrome ": "# of Private Providers for Buprenorphine Treatment*"}
 
     var menu = d3.select("#metrics");
-		for (prop in hrap_data[0]){
+		for (prop in hrap_data_need[0]){
 			if (prop != "HSA_NAME"){
 				menu.append("option").attr("value",prop).text(prop);
 			}
 		}
     // set the behavior on a change to the menu (i.e., update the coloring)
     		d3.select("select").on("change", function () {
-    			setMetric(this.value);
+    			setNeedMetric(this.value)
+                console.log(this.value)
+                setResourceMetric(resourceDict[this.value])
     			});
 
 
-    projection.fitExtent([[20, 20], [940, 480]], map_data);
+    projection.fitExtent([[20, 20], [350, 400]], map_data);
 
     // set the domain for our color scale now that we have data
-    color.domain(d3.extent(hrap_data, (d) => +d[metric]));
+    color.domain(d3.extent(hrap_data_need, (d) => +d[metric]));
 
-    // create a map of our census data, so we can easily find records
-    // corresponding to a particular state
-    const hsa_map = d3.map();
-    hrap_data.forEach((d)=> {hsa_map.set(d["HSA_NAME"],d)});
+    // create a map of our hrap data, so we can easily find records
+    // corresponding to a particular hsa
+    const hsa_map_need = d3.map();
+    hrap_data_need.forEach((d)=> {hsa_map_need.set(d["HSA_NAME"],d)})
+
+    const hsa_map_resource = d3.map();
+    hrap_data_resource.forEach((d)=> {hsa_map_resource.set(d["HSA_NAME"],d)})
 
     // loop through all of the path data, attaching the appropriate
     // record to each one based on the name
     for (let i = 0; i < map_data.features.length; i++){
         let name = map_data.features[i].properties["HSA_NAME"];
-        map_data.features[i].properties.value = hsa_map.get(name);
+        map_data.features[i].properties.value = hsa_map_need.get(name);
+        map_data.features[i].properties.value1 = hsa_map_resource.get(name);
     }
 
-    // create the states in the SVG
-    const serviceAreas = svg.selectAll("path")
+    // create the HSA's in the need SVG
+    const serviceAreasNeed = svgNeed.selectAll("path")
         .data(map_data.features)
         .enter()
         .append("path")
         .attr("d", path)
         .attr("class","hsa")
+        .style("stroke", "black")
+        .style("stroke-width", "1px")
 
-        function setMetric(metric){
-    			color.domain(d3.extent(hrap_data, (d) => +d[metric]));
-                    serviceAreas.transition()
+    // create the HSA's in the resource SVG
+    const serviceAreasResource = svgResource.selectAll("path")
+        .data(map_data.features)
+        .enter()
+        .append("path")
+        .attr("d", path)
+        .attr("class","hsa")
+        .style("stroke", "black")
+        .style("stroke-width", "1px")
+
+
+
+        function setNeedMetric(metric){
+    			color.domain(d3.extent(hrap_data_need, (d) => +d[metric]));
+                    serviceAreasNeed.transition()
 				    .duration(1500)
                     .style("fill", function(d){
                         if (d.properties.value){
@@ -135,9 +171,24 @@ d3.csv("HRAP_Data.csv")
 
                     });
 
-
     		}
-    setMetric("Developmental Screening")
+        function setResourceMetric(metric){
+            console.log(metric)
+                color.domain(d3.extent(hrap_data_resource, (d) => +d[metric]));
+                    serviceAreasResource.transition()
+                    .duration(1500)
+                    .style("fill", function(d){
+                        if (d.properties.value){
+                            return color(+d.properties.value1[metric]);
+                        }	else{
+                            return "red";
+                        }
+
+                    });
+
+            }
+    setNeedMetric("Developmental Screening")
+    setResourceMetric(resourceDict["Developmental Screening"])
 
 
 });

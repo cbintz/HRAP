@@ -198,6 +198,10 @@ const legend2Data = [1,2,3,4]
   .text("High-need, high-resource")
 
 
+    
+
+
+
   // legend.append("text")
   //     .attr("x", 26)
   //     .attr("y", 10)
@@ -243,7 +247,8 @@ d3.csv("HRAP_Data_Gap.csv")
 
     const resourceDict = {"Developmental Screening": "Availability of Early Head Start*", "Abstain From Smoking During Pregnancy": "# of 802 Quits Partners",
                         "Breast Cancer Screening" : "# Ladies First Enrollees*", "Cervical Cancer Screening": "# Ladies First Enrollees*",
-                    "Chlamydia Screening": "# Clinics that test for chlamydia", "Neonatal Abstinence Syndrome": "# of Private Providers for Buprenorphine Treatment*"}
+                    "Chlamydia Screening": "# Clinics that test for chlamydia", "Neonatal Abstinence Syndrome": "# of Private Providers for Buprenorphine Treatment*",
+                "Overall" : "Overall"}
 
     var menu = d3.select("#metrics");
 		for (prop in hrap_data_need[0]){
@@ -406,8 +411,13 @@ d3.csv("HRAP_Data_Gap.csv")
 				    .duration(1500)
                     .style("fill", function(d){
                         if (d.properties.value[metric] != ""){
-                        //    return color(+d.properties.value2[metric]);
+                            if (metric == "Overall"){
+                                color.domain(d3.extent(hrap_data_gap, (d) => +d[metric]));
+                                return color(+d.properties.value2[metric]);
+                            }
+                            else {
                             return colorGap(+d.properties.value2[metric])
+                        }
                         }	else{
                             return "lightgrey";
                         }

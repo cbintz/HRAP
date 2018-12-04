@@ -35,8 +35,15 @@
 
 <body>
     <div style="width:1770px">
-  <svg width="350" height="400" id="svg1" ></svg>
-  <svg width="350" height="400" id="svg2" >></svg>
+    <section>
+        <h2>Maternal and Child Health in Vermont: New HRAP Prototype</h2>
+        <h3>Health Economics and Policy Fall 2018</h3>
+        <h5>Select Metric:</h5>
+        <select><optgroup label="Metrics" id="metrics"></optgroup></select>
+    </section>
+  <svg width="400" height="450" id="svg1" ></svg>
+  <svg width="400" height="450" id="svg2" >></svg>
+  <svg width="500" height="450" id="svg3" >></svg>
     </div>
     <div id="tooltip" class="hidden">
         <p>
@@ -53,39 +60,150 @@ const svgNeed = d3.select("#svg1")
 				.attr("width", width)
 				.attr("height", height)
 
+svgNeed.append("text")
+.attr("text-anchor", "middle")
+.attr("transform", `translate(${width/2+70}, ${20})`)
+.text("Need by Hospital Service Area");
+
 const svgResource = d3.select("#svg2")
 				.append("svg")
 				.attr("width", width)
 				.attr("height", height)
 
+const svgGap = d3.select("#svg3")
+				.append("svg")
+				.attr("width", width)
+				.attr("height", height)
+svgGap.append("text")
+.attr("text-anchor", "middle")
+.attr("transform", `translate(${width/2+28}, ${20})`)
+.text("Need-Resource Gap by Hospital Service Area");
 
+
+svgNeed.append("text")
+.attr("text-anchor", "middle")
+.attr("transform", `translate(${50}, ${80})`)
+.attr("font-size", "12")
+.text("Low need")
+
+svgNeed.append("text")
+.attr("text-anchor", "middle")
+.attr("transform", `translate(${50}, ${160})`)
+.attr("font-size", "12")
+.text("High need")
+
+svgResource.append("text")
+.attr("text-anchor", "middle")
+.attr("transform", `translate(${width/2+60}, ${20})`)
+.text("Resource by Hospital Service Area");
+
+
+const colorGap = function(category) {
+    if (category == 1) {
+        //return '#e41a1c'
+        return '#a6cee3'
+    }
+    else if (category == 2){
+        //return '#377eb8'
+        return '#1f78b4'
+    }
+    else if (category == 3) {
+    //    return '#4daf4a'
+        return '#b2df8a'
+    }
+
+    else {
+        return '#33a02c'
+    }
+}
+
+
+const colorNeed = d3.scaleSequential(d3.interpolateBuGn)
 
 const color = d3.scaleSequential(d3.interpolateBuGn)
 
 // Add a legend for the color values.
+
+
   var legend = svgNeed.selectAll("#key1")
       .data(color.ticks(6).slice(1).reverse())
     .enter().append("g")
       .attr("class", "legend")
-      .attr("transform", function(d, i) { return "translate(" + (0) + "," + (20 + i * 20) + ")"; });
+      .attr("transform", function(d, i) { return "translate(" + (0) + "," + (65 + i * 20) + ")"; });
 
   legend.append("rect")
       .attr("width", 20)
       .attr("height", 20)
       .style("fill", color);
 
-  legend.append("text")
-      .attr("x", 26)
-      .attr("y", 10)
-      .attr("dy", ".35em")
-      .text(String);
+  var legend1 = svgResource.selectAll("#key1")
+      .data(color.ticks(6).slice(1).reverse())
+    .enter().append("g")
+      .attr("class", "legend")
+      .attr("transform", function(d, i) { return "translate(" + (0) + "," + (65 + i * 20) + ")"; });
 
-  svgNeed.append("text")
-      .attr("class", "label")
-      .attr("x", width + 20)
-      .attr("y", 10)
-      .attr("dy", ".35em")
-      .text("Count");
+  legend1.append("rect")
+      .attr("width", 20)
+      .attr("height", 20)
+      .style("fill", color);
+
+  svgResource.append("text")
+  .attr("text-anchor", "middle")
+  .attr("transform", `translate(${60}, ${80})`)
+  .attr("font-size", "12")
+  .text("High resource")
+
+  svgResource.append("text")
+  .attr("text-anchor", "middle")
+  .attr("transform", `translate(${60}, ${160})`)
+  .attr("font-size", "12")
+  .text("Low resource")
+
+const legend2Data = [1,2,3,4]
+
+
+  var legend2 = svgGap.selectAll("#key1")
+      .data(legend2Data)
+    .enter().append("g")
+      .attr("class", "legend")
+      .attr("transform", function(d, i) { return "translate(" + (0) + "," + (65 + i * 20) + ")"; });
+
+  legend2.append("rect")
+      .attr("width", 20)
+      .attr("height", 20)
+      .style("fill", (d) => colorGap(d));
+
+  svgGap.append("text")
+  .attr("text-anchor", "middle")
+  .attr("transform", `translate(${85}, ${80})`)
+  .attr("font-size", "12")
+  .text("High-need, low-resource")
+
+  svgGap.append("text")
+  .attr("text-anchor", "middle")
+  .attr("transform", `translate(${85}, ${100})`)
+  .attr("font-size", "12")
+  .text("High-need, high-resource")
+
+  svgGap.append("text")
+  .attr("text-anchor", "middle")
+  .attr("transform", `translate(${85}, ${120})`)
+  .attr("font-size", "12")
+  .text("Low-need, high-resource")
+
+  svgGap.append("text")
+  .attr("text-anchor", "middle")
+  .attr("transform", `translate(${85}, ${140})`)
+  .attr("font-size", "12")
+  .text("High-need, high-resource")
+
+
+  // legend.append("text")
+  //     .attr("x", 26)
+  //     .attr("y", 10)
+  //     .attr("dy", ".35em")
+  //     .text(String);
+
 
 
 // set-up unit projection and path
@@ -112,7 +230,8 @@ let metric="Developmental_Screening_Rate";
 Promise.all([
 d3.json("hsa.geojson"),
 d3.csv("HRAP_Data_Need.csv"),
-d3.csv("HRAP_Data_Resource.csv")
+d3.csv("HRAP_Data_Resource.csv"),
+d3.csv("HRAP_Data_Gap.csv")
 ]).then(function(data){
     console.log(data[0])
     console.log(data[1])
@@ -120,10 +239,11 @@ d3.csv("HRAP_Data_Resource.csv")
     const map_data = data[0];
     const hrap_data_need = data[1];
     const hrap_data_resource = data[2]
+    const hrap_data_gap = data[3]
 
     const resourceDict = {"Developmental Screening": "Availability of Early Head Start*", "Abstain From Smoking During Pregnancy": "# of 802 Quits Partners",
                         "Breast Cancer Screening" : "# Ladies First Enrollees*", "Cervical Cancer Screening": "# Ladies First Enrollees*",
-                    "Chlamydia Screening": "# Clinics that test for chlamydia", "Neonatal Abstinence Syndrome ": "# of Private Providers for Buprenorphine Treatment*"}
+                    "Chlamydia Screening": "# Clinics that test for chlamydia", "Neonatal Abstinence Syndrome": "# of Private Providers for Buprenorphine Treatment*"}
 
     var menu = d3.select("#metrics");
 		for (prop in hrap_data_need[0]){
@@ -134,12 +254,12 @@ d3.csv("HRAP_Data_Resource.csv")
     // set the behavior on a change to the menu (i.e., update the coloring)
     		d3.select("select").on("change", function () {
     			setNeedMetric(this.value)
-                console.log(this.value)
+                setGapMetric(this.value)
                 setResourceMetric(resourceDict[this.value])
     			});
 
 
-    projection.fitExtent([[20, 20], [350, 400]], map_data);
+    projection.fitExtent([[150, 50], [350, 400]], map_data);
 
     // set the domain for our color scale now that we have data
     color.domain(d3.extent(hrap_data_need, (d) => +d[metric]));
@@ -152,12 +272,16 @@ d3.csv("HRAP_Data_Resource.csv")
     const hsa_map_resource = d3.map();
     hrap_data_resource.forEach((d)=> {hsa_map_resource.set(d["HSA_NAME"],d)})
 
+    const hsa_map_gap = d3.map();
+    hrap_data_gap.forEach((d)=> {hsa_map_gap.set(d["HSA_NAME"],d)})
+
     // loop through all of the path data, attaching the appropriate
     // record to each one based on the name
     for (let i = 0; i < map_data.features.length; i++){
         let name = map_data.features[i].properties["HSA_NAME"];
         map_data.features[i].properties.value = hsa_map_need.get(name);
         map_data.features[i].properties.value1 = hsa_map_resource.get(name);
+        map_data.features[i].properties.value2 = hsa_map_gap.get(name);
     }
 
     console.log(map_data.features)
@@ -215,17 +339,44 @@ d3.csv("HRAP_Data_Resource.csv")
             d3.select("#tooltip")
             .classed("hidden",true)});
 
+        // create the HSA's in the resource SVG
+        const serviceAreasGap = svgGap.selectAll("path")
+            .data(map_data.features)
+            .enter()
+            .append("path")
+            .attr("d", path)
+            .attr("class","hsa")
+            .style("stroke", "black")
+            .style("stroke-width", "1px")
+
+            serviceAreasGap.on("mouseover", function(d){
+                d3.select(this).classed("highlighted", true)
+                d3.select("#tooltip").classed("hidden", false)
+                d3.select("#area").text(d.properties.value2.HSA_NAME)
+
+                const coordinates = [d3.event.pageX, d3.event.pageY]
+                const tooltip = d3.select("#tooltip")
+                .style("left", (coordinates[0]+25)+"px")
+                .style("top", (coordinates[1]+25)+"px");
+            });
+
+            serviceAreasGap.on("mouseout", function(d){d3.select(this)
+                .classed("highlighted", false)
+                d3.select("#tooltip")
+                .classed("hidden",true)});
+
 
 
         function setNeedMetric(metric){
-    			color.domain(d3.extent(hrap_data_need, (d) => +d[metric]));
+    			colorNeed.domain(d3.extent(hrap_data_need, (d) => +d[metric]));
                     serviceAreasNeed.transition()
 				    .duration(1500)
                     .style("fill", function(d){
-                        if (d.properties.value){
-                            return color(+d.properties.value[metric]);
+                        if (d.properties.value[metric] != ""){
+                            return colorNeed(+d.properties.value[metric]);
                         }	else{
-                            return "red";
+                            return "lightgrey";
+
                         }
 
                     });
@@ -238,24 +389,43 @@ d3.csv("HRAP_Data_Resource.csv")
                     serviceAreasResource.transition()
                     .duration(1500)
                     .style("fill", function(d){
-                        if (d.properties.value){
+                    if (d.properties.value[metric] != ""){
                             return color(+d.properties.value1[metric]);
                         }	else{
-                            return "red";
+                            return "lightgrey";
                         }
 
                     });
 
             }
+
+
+        function setGapMetric(metric){
+    			//color.domain(d3.extent(hrap_data_gap, (d) => +d[metric]));
+                    serviceAreasGap.transition()
+				    .duration(1500)
+                    .style("fill", function(d){
+                        if (d.properties.value[metric] != ""){
+                        //    return color(+d.properties.value2[metric]);
+                            return colorGap(+d.properties.value2[metric])
+                        }	else{
+                            return "lightgrey";
+                        }
+
+                    });
+
+
+    		}
     setNeedMetric("Developmental Screening")
     setResourceMetric(resourceDict["Developmental Screening"])
+    setGapMetric("Developmental Screening")
 
 
 });
 
 
 </script>
-<select><optgroup label="Metrics" id="metrics"></optgroup></select>
+
 
     </body>
 </html>

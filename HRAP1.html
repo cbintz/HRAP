@@ -8,6 +8,18 @@
     <script src="http://d3js.org/colorbrewer.v1.min.js"></script>
 
     <style type="text/css">
+    h3{
+    margin:0;
+    padding:0;
+    }
+    h4{
+    margin:0;
+    padding:2;
+    }
+    h5{
+    margin:2;
+    padding:0;
+    }
     #tooltip{
         position:absolute;
         width:150px;
@@ -35,28 +47,17 @@
     #tooltip3 {
         font-size: 11px;
     }
+    #tooltip4 {
+        font-size: 11px;
+    }
 
     .container {
-    width: 80%;
-    height: 50px;
-    margin: auto;
-    padding: 10px;
-}
-    #tooltip2{
-    width: 15%;
-
-    float: left;
-}
-#tooltip3{
-    margin-left: 40%;
-
+  display: grid;
+  grid-template-columns: 1.1fr .8fr 1.2fr; /* fraction*/
 }
 
-h7{
-    margin: 0px;
-    font-size: 14px;
-    font-weight: bold;
-}
+
+
 
 
 
@@ -67,8 +68,9 @@ h7{
 <body>
     <div style="width:1770px">
     <section>
-        <h2>Maternal and Child Health in Vermont: New HRAP Prototype</h2>
-        <h3>Health Economics and Policy Fall 2018</h3>
+        <h3>Maternal and Child Health in Vermont: New HRAP Prototype</h3>
+        <h5> Directions: Select a metric to see the need, resource, and gap map color appropriately. <br />
+            Select overall to see how each hospital service area (HSA) does in meeting their health needs and resource targets. Hover over a HSA to see the corresponding metrics below each map change accordingly.</h5>
         <h5>Select Metric:</h5>
         <select><optgroup label="Metrics" id="metrics"></optgroup></select>
     </section>
@@ -95,7 +97,7 @@ h7{
             <b><i># of need targets met:</i></b> <span id="needOverall"></span><br />
         </p>
     </div>
-    <div id="tooltip3">
+    <div id="tooltip3" >
         <p>
             <h7>Resource Metrics</h7> <br />
             <b><i>HSA:</i></b> <span id="area2"></span><br />
@@ -105,6 +107,18 @@ h7{
             <b><i># of clinics that offer chlamydia screening:</i></b> <span id="resourceChlamydia"></span><br />
             <b><i># private providers for buprenorphine treatment:</i></b> <span id="resourceNAS"></span><br />
             <b><i># of need resource met:</i></b> <span id="resourceOverall"></span><br />
+        </p>
+    </div>
+    <div id="tooltip4">
+        <p>
+            <h7>Gap Metrics</h7> <br />
+            <b><i>HSA:</i></b> <span id="area3"></span><br />
+            <b><i>Developmental screening gap :</i></b> <span id="gapDev"></span><br />
+            <b><i>Smoking during pregnancy gap:</i></b> <span id="gapSmoke" ></span><br />
+            <b><i>Breast cancer gap:</i></b> <span id="gapBreast"></span><br />
+            <b><i>Cervcial cancer gap:</i></b> <span id="gapCervical"></span><br />
+            <b><i>Chlamydia gap:</i></b> <span id="gapChlamydia"></span><br />
+            <b><i>Overall gap:</i></b> <span id="gapOverall"></span><br />
         </p>
     </div>
     </section>
@@ -392,7 +406,7 @@ d3.csv("HRAP_Data_Gap.csv")
         d3.select("#needBreast").text(d.properties.value["Breast Cancer Screening"])
         d3.select("#needCervical").text(d.properties.value["Cervical Cancer Screening"])
         d3.select("#needChlamydia").text(d.properties.value["Chlamydia Screening"])
-        d3.select("#needNAS").text(["DATA UNAVAILABLE PER HSA"])
+        d3.select("#needNAS").text(["DATA UNAVAILABLE"])
         d3.select("#needOverall").text(d.properties.value["Overall"])
 
         const coordinates = [d3.event.pageX, d3.event.pageY]
@@ -425,7 +439,7 @@ d3.csv("HRAP_Data_Gap.csv")
             d3.select("#resourceSmoke").text(d.properties.value1[resourceDict["Abstain From Smoking During Pregnancy"]])
             d3.select("#resourceBreast").text(d.properties.value1[resourceDict["Breast Cancer Screening"]])
             d3.select("#resourceChlamydia").text(d.properties.value1[resourceDict["Chlamydia Screening"]])
-            d3.select("#resourceNAS").text(["DATA UNAVAILABLE PER HSA"])
+            d3.select("#resourceNAS").text(["DATA UNAVAILABLE"])
             d3.select("#resourceOverall").text(d.properties.value1[resourceDict["Overall"]])
 
             const coordinates = [d3.event.pageX, d3.event.pageY]
@@ -452,7 +466,14 @@ d3.csv("HRAP_Data_Gap.csv")
             serviceAreasGap.on("mouseover", function(d){
                 d3.select(this).classed("highlighted", true)
                 d3.select("#tooltip").classed("hidden", false)
-                //d3.select("#area").text(d.properties.value2.HSA_NAME)
+                d3.select("#area3").text(d.properties.value2.HSA_NAME)
+                d3.select("#gapDev").text(d.properties.value2["Developmental Screening"])
+                d3.select("#gapSmoke").text(d.properties.value2["Abstain From Smoking During Pregnancy"])
+                d3.select("#gapBreast").text(d.properties.value2["Breast Cancer Screening"])
+                d3.select("#gapCervical").text(d.properties.value2["Cervical Cancer Screening"])
+                d3.select("#gapChlamydia").text(d.properties.value2["Chlamydia Screening"])
+                d3.select("#gapOverall").text(d.properties.value2["Overall"])
+
 
                 const coordinates = [d3.event.pageX, d3.event.pageY]
                 const tooltip = d3.select("#tooltip")

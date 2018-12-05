@@ -28,6 +28,37 @@
         display:none;
     }
 
+    #tooltip2 {
+        font-size: 11px;
+    }
+
+    #tooltip3 {
+        font-size: 11px;
+    }
+
+    .container {
+    width: 80%;
+    height: 50px;
+    margin: auto;
+    padding: 10px;
+}
+    #tooltip2{
+    width: 15%;
+
+    float: left;
+}
+#tooltip3{
+    margin-left: 40%;
+
+}
+
+h7{
+    margin: 0px;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+
 
     </style>
 
@@ -41,15 +72,42 @@
         <h5>Select Metric:</h5>
         <select><optgroup label="Metrics" id="metrics"></optgroup></select>
     </section>
-  <svg width="400" height="450" id="svg1" ></svg>
-  <svg width="400" height="450" id="svg2" >></svg>
-  <svg width="500" height="450" id="svg3" >></svg>
+  <svg width="400" height="400" id="svg1" ></svg>
+  <svg width="400" height="400" id="svg2" >></svg>
+  <svg width="500" height="400" id="svg3" >></svg>
     </div>
+    <section class = "container">
     <div id="tooltip" class="hidden">
         <p>
-            <b><i>HSA:</i></b> <span id="area"></span><br />
+            <b><i>HSA:</i></b> <span id="area" class = "hidden"></span><br />
         </p>
     </div>
+    <div id="tooltip2">
+        <p>
+            <h7>Need Metrics</h7> <br />
+            <b><i>HSA:</i></b> <span id="area1"></span><br />
+            <b><i>% of children 0-3 who received a developmental screening:</i></b> <span id="needDev"></span><br />
+            <b><i>% of women who abstain from smoking during pregnancy:</i></b> <span id="needSmoke" ></span><br />
+            <b><i>% of women (52-64) who received a breast cancer screening in the past 2 years:</i></b> <span id="needBreast"></span><br />
+            <b><i>% of women (16-24) who received a cervical cancer screening in the past 2 years:</i></b> <span id="needCervical"></span><br />
+            <b><i>% of women (16-24) who received a chlamydia screening in the past 2 years:</i></b> <span id="needChlamydia"></span><br />
+            <b><i># of infants born with Neonatal Abstinence Syndome per 100,000 births:</i></b> <span id="needNAS"></span><br />
+            <b><i># of need targets met:</i></b> <span id="needOverall"></span><br />
+        </p>
+    </div>
+    <div id="tooltip3">
+        <p>
+            <h7>Resource Metrics</h7> <br />
+            <b><i>HSA:</i></b> <span id="area2"></span><br />
+            <b><i>Availability of Early Head Start:</i></b> <span id="resourceDev"></span><br />
+            <b><i>Availability of Vermont Quits Partner through 802 Quits:</i></b> <span id="resourceSmoke" ></span><br />
+            <b><i># of Ladies First Enrollees:</i></b> <span id="resourceBreast"></span><br />
+            <b><i># of clinics that offer chlamydia screening:</i></b> <span id="resourceChlamydia"></span><br />
+            <b><i># private providers for buprenorphine treatment:</i></b> <span id="resourceNAS"></span><br />
+            <b><i># of need resource met:</i></b> <span id="resourceOverall"></span><br />
+        </p>
+    </div>
+    </section>
 
     <svg id="key1"></svg>
 <script type="text/javascript">
@@ -234,17 +292,6 @@ const legend2Data = [1,2,3,4]
   .text("Small gap")
 
 
-
-
-
-  // legend.append("text")
-  //     .attr("x", 26)
-  //     .attr("y", 10)
-  //     .attr("dy", ".35em")
-  //     .text(String);
-
-
-
 // set-up unit projection and path
  var projection = d3.geoMercator()
      .translate([width, height])
@@ -254,14 +301,8 @@ const legend2Data = [1,2,3,4]
  var path = d3.geoPath()
      .projection(projection);
 
- // create our coloring tool
- // const color = d3.scaleQuantize()
- // .range(colorbrewer.YlGnBu[8].reverse());
 
-   //.range(["#33FF6B", "#FF3333"]);
-
-//TODO: add interaction to select metric
-let metric="Developmental_Screening_Rate";
+let metric="Developmental Screening";
 
 
 // fetch our data -- first the map, and then the CSV data (the order matters little here since we
@@ -285,6 +326,8 @@ d3.csv("HRAP_Data_Gap.csv")
                     "Chlamydia Screening": "# Clinics that test for chlamydia", "Neonatal Abstinence Syndrome": "# of Private Providers for Buprenorphine Treatment*",
                 "Overall" : "Overall"}
 
+    const tooltipDict = {"Developmental Screening": "#dev", "Abstain From Smoking During Pregnancy": "#smoke"}
+
     var menu = d3.select("#metrics");
 		for (prop in hrap_data_need[0]){
 			if (prop != "HSA_NAME"){
@@ -293,6 +336,7 @@ d3.csv("HRAP_Data_Gap.csv")
 		}
     // set the behavior on a change to the menu (i.e., update the coloring)
     		d3.select("select").on("change", function () {
+                metric = this.value
     			setNeedMetric(this.value)
                 setGapMetric(this.value)
                 setResourceMetric(resourceDict[this.value])
@@ -336,10 +380,20 @@ d3.csv("HRAP_Data_Gap.csv")
         .style("stroke", "black")
         .style("stroke-width", "1px")
 
+
+
+
     serviceAreasNeed.on("mouseover", function(d){
-        d3.select(this).classed("highlighted", true)
         d3.select("#tooltip").classed("hidden", false)
         d3.select("#area").text(d.properties.value.HSA_NAME)
+        d3.select("#area1").text(d.properties.value.HSA_NAME)
+        d3.select("#needDev").text(d.properties.value["Developmental Screening"])
+        d3.select("#needSmoke").text(d.properties.value["Abstain From Smoking During Pregnancy"])
+        d3.select("#needBreast").text(d.properties.value["Breast Cancer Screening"])
+        d3.select("#needCervical").text(d.properties.value["Cervical Cancer Screening"])
+        d3.select("#needChlamydia").text(d.properties.value["Chlamydia Screening"])
+        d3.select("#needNAS").text(["DATA UNAVAILABLE PER HSA"])
+        d3.select("#needOverall").text(d.properties.value["Overall"])
 
         const coordinates = [d3.event.pageX, d3.event.pageY]
         const tooltip = d3.select("#tooltip")
@@ -364,9 +418,15 @@ d3.csv("HRAP_Data_Gap.csv")
         .style("stroke-width", "1px")
 
         serviceAreasResource.on("mouseover", function(d){
-            d3.select(this).classed("highlighted", true)
             d3.select("#tooltip").classed("hidden", false)
-            d3.select("#area").text(d.properties.value1.HSA_NAME)
+            d3.select("#area").text(d.properties.value.HSA_NAME)
+            d3.select("#area2").text(d.properties.value.HSA_NAME)
+            d3.select("#resourceDev").text(d.properties.value1[resourceDict["Developmental Screening"]])
+            d3.select("#resourceSmoke").text(d.properties.value1[resourceDict["Abstain From Smoking During Pregnancy"]])
+            d3.select("#resourceBreast").text(d.properties.value1[resourceDict["Breast Cancer Screening"]])
+            d3.select("#resourceChlamydia").text(d.properties.value1[resourceDict["Chlamydia Screening"]])
+            d3.select("#resourceNAS").text(["DATA UNAVAILABLE PER HSA"])
+            d3.select("#resourceOverall").text(d.properties.value1[resourceDict["Overall"]])
 
             const coordinates = [d3.event.pageX, d3.event.pageY]
             const tooltip = d3.select("#tooltip")
@@ -392,7 +452,7 @@ d3.csv("HRAP_Data_Gap.csv")
             serviceAreasGap.on("mouseover", function(d){
                 d3.select(this).classed("highlighted", true)
                 d3.select("#tooltip").classed("hidden", false)
-                d3.select("#area").text(d.properties.value2.HSA_NAME)
+                //d3.select("#area").text(d.properties.value2.HSA_NAME)
 
                 const coordinates = [d3.event.pageX, d3.event.pageY]
                 const tooltip = d3.select("#tooltip")
@@ -404,7 +464,6 @@ d3.csv("HRAP_Data_Gap.csv")
                 .classed("highlighted", false)
                 d3.select("#tooltip")
                 .classed("hidden",true)});
-
 
 
         function setNeedMetric(metric){
